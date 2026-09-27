@@ -11,10 +11,10 @@ import json
 import os
 import random
 import sys
-import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 
+# Hercules constants
 HERMES_CACHE = os.path.expanduser("~/.hermes/cache")
 
 
@@ -33,17 +33,22 @@ class SimplifiedStromEvolution:
         self.run_count += 1
         timestamp = datetime.now().isoformat()
 
+        # Heuristic fitness based on prompt features
         fitness = 0.5  # base score
 
+        # Better fitness for prompts with structure
         if any(kw in prompt.lower() for kw in ["organize", "classify", "simple", "step"]):
             fitness += 0.2
 
+        # Better fitness for shorter, clearer prompts
         if 20 < len(prompt) < 200:
             fitness += 0.1
 
+        # Task difficulty adjustment
         difficulty_scores = {"simple": 0.1, "medium": 0.0, "complex": -0.1}
         fitness += difficulty_scores.get(task_difficulty, 0.0)
 
+        # Cap at 1.0
         fitness = min(max(fitness, 0.0), 1.0)
 
         metrics = {
@@ -58,6 +63,7 @@ class SimplifiedStromEvolution:
 
         self.fitness_history.append(metrics)
 
+        # Keep only last 15
         if len(self.fitness_history) > 15:
             self.fitness_history = self.fitness_history[-15:]
 
@@ -66,12 +72,15 @@ class SimplifiedStromEvolution:
     def mutate_prompt(self, prompt: str, fitness: float) -> str:
         """Apply mutation to prompt based on fitness."""
         if fitness >= 0.8:
+            # High fitness - small optimizations
             if "step" not in prompt.lower():
                 return prompt + " Use passos claros e concisos."
             elif "conciso" not in prompt.lower():
                 return prompt.replace("passos claros", "passos muito concisos")
             return prompt + " Otimize para clareza máxima."
+
         elif fitness < 0.4:
+            # Low fitness - major restructuring
             structuring_keywords = [
                 "Primeiro, organize por tipo:",
                 "Etapa 1: Classifique os itens",
@@ -79,18 +88,18 @@ class SimplifiedStromEvolution:
             ]
             return random.choice(structuring_keywords) + " " + prompt
         else:
+            # Medium fitness - add clarity
             if "claridade" not in prompt.lower():
                 return prompt + " Priorize clareza na resposta."
             return prompt
 
-    def run_cycle(self, prompt: str, iterations: int = 3, 
+    def run_cycle(self, prompt: str, iterations: int = 3,
                   task_difficulty: str = "medium") -> Dict:
         """Run one evolution cycle."""
         print("=" * 55)
         print("SIMPLIFIED STROM EVOLUTION")
         print("=" * 55)
-        print(f"
-Task: {prompt[:60]}...")
+        print(f"\nTask: {prompt[:60]}...")
         print(f"Iterations: {iterations}")
         print(f"Difficulty: {task_difficulty}")
         print()
@@ -101,25 +110,28 @@ Task: {prompt[:60]}...")
         for i in range(iterations):
             print(f"--- Cycle {i+1}/{iterations} ---")
 
+            # Evaluate fitness
             metrics = self.evaluate_fitness_simulated(prompt, task_difficulty)
             fitness = metrics["fitness"]
 
             print(f"Fitness: {fitness:.2f} | Success: {metrics['success']}")
             print(f"Prompt length: {metrics['prompt_length']}")
 
+            # Track best
             if fitness > best_fitness:
                 best_fitness = fitness
                 best_metrics = metrics
                 print("  -> NEW BEST!")
 
+            # Mutate for next iteration
             if i < iterations - 1:
                 prompt = self.mutate_prompt(prompt, fitness)
                 print(f"  -> Mutated prompt")
 
+        # Save lesson
         self._save_lesson(best_metrics, best_fitness)
 
-        print("
-" + "=" * 55)
+        print("\n" + "=" * 55)
         print(f"BEST FITNESS: {best_fitness:.2f}")
         print("=" * 55)
 
@@ -151,11 +163,9 @@ Task: {prompt[:60]}...")
             with open(lesson_file, "w") as f:
                 json.dump(lesson, f, indent=2, ensure_ascii=False)
             self.lessons_saved += 1
-            print(f"
-Lesson saved: {lesson_file}")
+            print(f"\nLesson saved: {lesson_file}")
         except Exception as e:
-            print(f"
-Could not save lesson: {e}")
+            print(f"\nCould not save lesson: {e}")
 
     def _extract_lessons(self, metrics: Optional[Dict]) -> List[str]:
         """Extract actionable lessons."""
@@ -172,13 +182,21 @@ Could not save lesson: {e}")
             lessons.append("Prompt needs restructuring")
             lessons.append("Add classification keywords (simple/medium/complex)")
 
-        lessons.append("Compression threshold 20 saves credits")
-        lessons.append("Save this lesson for reuse in future sessions via hindsight plugin")
+        # Credit-aware lesson
+        lessons.append(
+            "Compression threshold 20 saves credits"
+        )
+
+        # Hindsight pattern
+        lessons.append(
+            "Save this lesson for reuse in future sessions via hindsight plugin"
+        )
 
         return lessons
 
 
 def main():
+    """Main entry point."""
     if len(sys.argv) < 2:
         print("Usage: simplified_strom.py <prompt> [iterations] [difficulty]")
         print("Difficulty: simple | medium | complex")
@@ -189,32 +207,29 @@ def main():
     iterations = int(sys.argv[2]) if len(sys.argv) > 2 else 3
     difficulty = sys.argv[3] if len(sys.argv) > 3 else "medium"
 
+    # Initialize
     evolver = SimplifiedStromEvolution()
 
-    print("
-" + "=" * 65)
+    print("\n" + "=" * 65)
     print("HERMES SIMPLIFIED STROM EVOLUTION")
     print("=" * 65)
-    print(f"
-Task: {user_prompt}")
+    print(f"\nTask: {user_prompt}")
     print(f"Iterations: {iterations}")
     print(f"Difficulty: {difficulty}")
-    print("
-Starting auto-evolution cycle...
-")
+    print("\nStarting auto-evolution cycle...\n")
 
+    # Run cycle
     results = evolver.run_cycle(user_prompt, iterations, difficulty)
 
-    print("
-" + "=" * 65)
+    print("\n" + "=" * 65)
     if results["best_fitness"] >= 0.6:
         print("Optimization effective - lessons preserved via hindsight")
     else:
         print("Consider running again with different parameters")
     print("=" * 65)
 
-    print(f"
-Summary:")
+    # Summary
+    print(f"\nSummary:")
     print(f"  - Runs: {evolver.run_count}")
     print(f"  - Best fitness: {results['best_fitness']:.2f}")
     print(f"  - Lessons saved: {evolver.lessons_saved}")
