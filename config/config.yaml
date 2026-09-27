@@ -1,0 +1,94 @@
+# Context-Intelligence Optimized Hermes Config
+# Based on revolutionary discovery: context quality > model cost
+
+# Web backend configuration
+web:
+  backend: tavily
+  # Tavily: 1,000 free credits/month + ~29 remaining = 1,029 total
+
+# Context Compression Settings - Optimized for Credit Economy
+compression:
+  threshold: 20          # THE KEY: saves 40-80% credits
+  protect_last_n: 20     # Preserve last 20 messages
+
+# Model Thresholds - Complexity Classification
+model_thresholds:
+  codex_gpt55_autoraise: false
+
+# Auxiliary compression settings
+auxiliary:
+  compression:
+    provider: "auto"
+    model: "gemma3:27b"  # Default simple model
+
+# Provider Routing - Complexity Classification
+provider_routing:
+  complexity_classifier:
+    # Simple keywords - use gemma3:27b (economical)
+    simple_keywords:
+      - "preço"
+      - "custo"
+      - "barato"
+      - "quanto"
+      - "simple"
+      - "easy"
+      - "quick"
+      - "organize"
+      - "classify"
+      - "sort"
+    
+    # Medium keywords - use qwen30b (balanced)
+    medium_keywords:
+      - "analisar"
+      - "comparar"
+      - "resumir"
+      - "médio"
+      - "medium"
+      - "average"
+      - "analyze"
+      - "compare"
+      - "summarize"
+    
+    # Complex keywords - use qwen235b (top performance)
+    complex_keywords:
+      - "projetar"
+      - "otimizar"
+      - "arquitetura"
+      - "complex"
+      - "comprehensive"
+      - "design"
+      - "architect"
+      - "optimize"
+      - "comprehensive design"
+    
+    # Model mapping based on classification
+    model_mapping:
+      simple: "gemma3:27b"
+      medium: "qwen30b"
+      complex: "qwen235b"
+    
+    # Economy estimate vs always using top model
+    economy_estimate:
+      vs_always_top: "40-80% savings"
+      default_to_medium: true
+    
+    # Lessons learned from evolution cycles
+    lessons_learned:
+      - "Prompt structuring improves fitness >0.8 (Strom evolution test)"
+      - " compression threshold 20 saves 40-80% credits"
+      - "Simple tasks work best with gemma3:27b"
+      - "Hindsight lessons persist across sessions"
+
+# Plugin Configuration
+plugins:
+  enabled:
+    - hindsight          # Hindsight - persists lessons learned
+    # Disabled plugins can be added here
+  disabled: []
+
+# Economy tracking
+economy:
+  estimate: "40-80% savings vs always top model"
+  current_monthly_budget: 1029  # 1000 free + 29 invested
+  remaining_credits: 29
+  free_tier_monthly: 1000
